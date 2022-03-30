@@ -1,8 +1,11 @@
 from __future__ import annotations
 from typing import NoReturn
+from sklearn.metrics import roc_auc_score
+from sklearn.ensemble import RandomForestClassifier
 from IMLearn.base import BaseEstimator
 import numpy as np
-import pandas as pd
+
+
 
 
 class AgodaCancellationEstimator(BaseEstimator):
@@ -23,6 +26,8 @@ class AgodaCancellationEstimator(BaseEstimator):
 
         """
         super().__init__()
+        self.estimator = RandomForestClassifier(random_state=42)
+
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
@@ -40,7 +45,8 @@ class AgodaCancellationEstimator(BaseEstimator):
         -----
 
         """
-        pass
+        self.estimator.fit(X, y)
+
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -56,7 +62,7 @@ class AgodaCancellationEstimator(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        return np.zeros(X.shape[0])
+        return self.estimator.predict(X)
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -75,4 +81,5 @@ class AgodaCancellationEstimator(BaseEstimator):
         loss : float
             Performance under loss function
         """
-        pass
+
+        return roc_auc_score(y, self.estimator.predict(X))
