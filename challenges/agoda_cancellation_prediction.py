@@ -1,11 +1,8 @@
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_curve, roc_auc_score
 from sklearn.preprocessing import StandardScaler
 from challenges.agoda_cancellation_estimator import AgodaCancellationEstimator
 from IMLearn.utils import split_train_test
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 
 def load_data(is_train_data: bool, filename: str):
@@ -37,7 +34,7 @@ def load_data(is_train_data: bool, filename: str):
                                                                                format="%Y-%m-%d %H:%M:%S") - pd.to_datetime(
             full_data["booking_datetime"], format="%Y-%m-%d %H:%M:%S")) / np.timedelta64(1, 'D')
         full_data["did_cancel_within_a_month"] = full_data["time_of_reservation_before_cancellation"].apply(
-            lambda x: 1 if (x > -1 and x < 35) else 0)
+            lambda x: 1 if (x > -1 and x < 45) else 0)
     full_data.drop(
         ["h_booking_id", "h_customer_id", "booking_datetime", "checkin_date", "checkout_date", "hotel_id",
          "hotel_country_code",
@@ -58,7 +55,7 @@ def load_data(is_train_data: bool, filename: str):
     full_data["percentage"] = full_data.apply(
         lambda x: func(x["cancellation_policy_code"], int(x["time_of_reservation_before_checkin"]), x["duration"])[1],
         axis=1)
-    full_data.replace({True: 1, False: -1, np.nan: 0}, inplace=True)
+    full_data.replace({True: 1, False: 0, np.nan: 0}, inplace=True)
     if is_train_data:
         labels = full_data["did_cancel_within_a_month"]
         full_data.drop(["cancellation_policy_code", "did_cancel_within_a_month", "cancellation_datetime",
@@ -108,7 +105,7 @@ def parser(policy_code, duration):
     return int(days), percentage
 
 
-def evaluate_and_export(estimator,test_x, X: np.ndarray, true_y, filename: str):
+def evaluate_and_export(estimator, X: np.ndarray, filename: str):
     """
     Export to specified file the prediction results of given estimator on given testset.
 
@@ -127,27 +124,7 @@ def evaluate_and_export(estimator,test_x, X: np.ndarray, true_y, filename: str):
         path to store file at
 
     """
-    # pd.DataFrame({"predicted_values": estimator.predict(X), "true value": true_y}).to_csv(filename, index=False)
     pd.DataFrame({"predicted_values": estimator.predict(X)}).to_csv(filename, index=False)
-    figure = plt.figure(figsize=(8, 6))
-    score = estimator.estimator.score(test_x, test_y)
-    fpr1, tpr1, thresh1 = roc_curve(test_y, estimator.estimator.predict_proba(test_x)[:, 1])
-
-    auc1 = roc_auc_score(test_y, estimator.estimator.predict_proba(test_x)[:, 1])
-    plt.plot(fpr1, tpr1, label="Random Forest Test" + ", AUC = " + str(round(auc1, 3)))
-    plt.title('ROC Curve Analysis', fontweight='bold', fontsize=15)
-    plt.xticks(np.arange(0.0, 1.1, step=0.1))
-    plt.xlabel("False Positive Rate", fontsize=15)
-
-    plt.yticks(np.arange(0.0, 1.1, step=0.1))
-    plt.ylabel("True Positive Rate", fontsize=15)
-
-    plt.plot([0, 1], [0, 1], color='gray', linestyle='--')
-
-    plt.legend(loc=0)
-
-    plt.tight_layout()
-    plt.show()
 
 
 if __name__ == '__main__':
@@ -170,4 +147,4 @@ if __name__ == '__main__':
     real_test_x_scaled = pd.DataFrame(fitted_scaler.transform(real_test_x),
                                columns=real_test_x.columns)
     # Store model predictions over test set
-    evaluate_and_export(estimator,test_X, real_test_x_scaled, test_y, "208562405_208251975_316010636.csv")
+    evaluate_and_export(estimator, real_test_x_scaled, "208562405_208251975_316010636.csv")

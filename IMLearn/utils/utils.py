@@ -1,4 +1,5 @@
 import math
+import random
 from typing import Tuple
 import numpy as np
 import pandas as pd
@@ -34,12 +35,22 @@ def split_train_test(X: pd.DataFrame, y: pd.Series, train_proportion: float = .2
         Responses of test samples
 
     """
-    samples_in_train = math.ceil(X.shape[0] * train_proportion)
+    # X["response"] = y
+    # X = X.sample(frac=1)
+    # shuffled_response = X["response"]
+    # X.drop(["response"],
+    #     inplace=True, axis=1)
+    # train_samples_size = math.ceil(X.shape[0] * train_proportion)
+    #
+    # train_x = X[:train_samples_size]
+    # train_y = shuffled_response[:train_samples_size]
+    # test_x = X[train_samples_size:]
+    # test_y =shuffled_response[train_samples_size:]
 
-    train_x = X[:samples_in_train]
-    train_y = y[:samples_in_train]
-    test_x = X[samples_in_train:]
-    test_y = y[samples_in_train:]
+    train_x = X.sample(frac=train_proportion)
+    train_y = y[train_x.index]
+    test_x = X.drop(train_x.index,axis=0)
+    test_y = y[test_x.index]
 
     return train_x, train_y, test_x, test_y
 

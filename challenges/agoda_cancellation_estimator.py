@@ -1,11 +1,9 @@
 from __future__ import annotations
 from typing import NoReturn
-from sklearn.metrics import roc_auc_score
 from sklearn.ensemble import RandomForestClassifier
 from IMLearn.base import BaseEstimator
 import numpy as np
-
-
+from sklearn.metrics import accuracy_score
 
 
 class AgodaCancellationEstimator(BaseEstimator):
@@ -26,8 +24,8 @@ class AgodaCancellationEstimator(BaseEstimator):
 
         """
         super().__init__()
+        # self.models = [RandomForestClassifier(random_state=42), GradientBoostingClassifier(), LogisticRegression()]
         self.estimator = RandomForestClassifier(random_state=42)
-
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
@@ -45,8 +43,9 @@ class AgodaCancellationEstimator(BaseEstimator):
         -----
 
         """
+        # for c in self.models:
+        #     c.fit(X,y)
         self.estimator.fit(X, y)
-
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -62,6 +61,8 @@ class AgodaCancellationEstimator(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
+        # for c in self.models:
+        #     c.predict(X)
         return self.estimator.predict(X)
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
@@ -81,5 +82,8 @@ class AgodaCancellationEstimator(BaseEstimator):
         loss : float
             Performance under loss function
         """
+        return accuracy_score(y, self.estimator.predict(X))
+        # return roc_auc_score(y, self.estimator.predict(X))
 
-        return roc_auc_score(y, self.estimator.predict(X))
+        # for c in self.models:
+        #     print(accuracy_score(y,c.predict(X)))
